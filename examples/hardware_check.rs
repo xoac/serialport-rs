@@ -136,7 +136,7 @@ macro_rules! stop_bits_check {
 }
 
 fn test_single_port(port: &mut serialport::SerialPort) {
-    println!("Testing '{}':", port.port_name().unwrap());
+    println!("Testing '{}':", port.name().unwrap());
 
     // Test setting standard baud rates
     println!("Testing baud rates...");
@@ -177,7 +177,7 @@ fn test_single_port(port: &mut serialport::SerialPort) {
 }
 
 fn test_dual_ports(port1: &mut serialport::SerialPort, port2: &mut serialport::SerialPort) {
-    println!("Testing paired ports '{}' and '{}':", port1.port_name().unwrap(), port2.port_name().unwrap());
+    println!("Testing paired ports '{}' and '{}':", port1.name().unwrap(), port2.name().unwrap());
 
     // Make sure both ports are set to sane defaults
     let mut port_settings: SerialPortSettings = Default::default();
