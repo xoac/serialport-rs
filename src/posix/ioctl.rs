@@ -1,21 +1,21 @@
 use std::mem;
 use std::os::unix::io::RawFd;
 
-use nix::libc as libc;
+use nix::libc;
 
 // These are wrapped in a module because they're `pub` by default
 mod raw {
-    use nix::libc as libc;
+    use nix::libc;
     ioctl!(bad none tiocexcl with libc::TIOCEXCL);
     ioctl!(bad none tiocnxcl with libc::TIOCNXCL);
     ioctl!(bad read tiocmget with libc::TIOCMGET; libc::c_int);
     ioctl!(bad write_ptr tiocmbic with libc::TIOCMBIC; libc::c_int);
     ioctl!(bad write_ptr tiocmbis with libc::TIOCMBIS; libc::c_int);
     ioctl!(
-        #[cfg(any(target_os = "android", target_os = "linux"))]
+        #[cfg(any(target_os = "android", all(target_os = "linux", not(target_env = "musl"))))]
         read tcgets2 with b'T', 0x2A; libc::termios2);
     ioctl!(
-        #[cfg(any(target_os = "android", target_os = "linux"))]
+        #[cfg(any(target_os = "android", all(target_os = "linux", not(target_env = "musl"))))]
         write_ptr tcsets2 with b'T', 0x2B; libc::termios2);
 }
 
@@ -34,11 +34,15 @@ bitflags!{
 }
 
 pub fn tiocexcl(fd: RawFd) -> ::Result<()> {
-    unsafe { raw::tiocexcl(fd) }.map(|_| ()).map_err(|e| e.into())
+    unsafe { raw::tiocexcl(fd) }
+        .map(|_| ())
+        .map_err(|e| e.into())
 }
 
 pub fn tiocnxcl(fd: RawFd) -> ::Result<()> {
-    unsafe { raw::tiocnxcl(fd) }.map(|_| ()).map_err(|e| e.into())
+    unsafe { raw::tiocnxcl(fd) }
+        .map(|_| ())
+        .map_err(|e| e.into())
 }
 
 pub fn tiocmget(fd: RawFd) -> ::Result<SerialLines> {
@@ -49,15 +53,19 @@ pub fn tiocmget(fd: RawFd) -> ::Result<SerialLines> {
 
 pub fn tiocmbic(fd: RawFd, status: SerialLines) -> ::Result<()> {
     let bits = status.bits() as libc::c_int;
-    unsafe { raw::tiocmbic(fd, &bits) }.map(|_| ()).map_err(|e| e.into())
+    unsafe { raw::tiocmbic(fd, &bits) }
+        .map(|_| ())
+        .map_err(|e| e.into())
 }
 
 pub fn tiocmbis(fd: RawFd, status: SerialLines) -> ::Result<()> {
     let bits = status.bits() as libc::c_int;
-    unsafe { raw::tiocmbis(fd, &bits) }.map(|_| ()).map_err(|e| e.into())
+    unsafe { raw::tiocmbis(fd, &bits) }
+        .map(|_| ())
+        .map_err(|e| e.into())
 }
 
-#[cfg(any(target_os = "android", target_os = "linux"))]
+#[cfg(any(target_os = "android", all(target_os = "linux", not(target_env = "musl"))))]
 pub fn tcgets2(fd: RawFd) -> ::Result<libc::termios2> {
     let mut options = unsafe { mem::uninitialized() };
     match unsafe { raw::tcgets2(fd, &mut options) } {
@@ -66,7 +74,9 @@ pub fn tcgets2(fd: RawFd) -> ::Result<libc::termios2> {
     }
 }
 
-#[cfg(any(target_os = "android", target_os = "linux"))]
+#[cfg(any(target_os = "android", all(target_os = "linux", not(target_env = "musl"))))]
 pub fn tcsets2(fd: RawFd, options: &libc::termios2) -> ::Result<()> {
-    unsafe { raw::tcsets2(fd, options) }.map(|_| ()).map_err(|e| e.into())
+    unsafe { raw::tcsets2(fd, options) }
+        .map(|_| ())
+        .map_err(|e| e.into())
 }
